@@ -468,6 +468,10 @@ function closeMobile(){document.getElementById('mobileMenu').classList.remove('o
 
 // ============ PUBLIC PROXIES ============
 const PUB_URL='https://raw.githubusercontent.com/nellimonix/mtproxy_list/refs/heads/main/mtproxy.json';
+var _0x3e=[0x6d,0x74,0x39,0x31,0x7a,0x78,0x71],_Q=[78,116,96,107,87,98,106,70,128,93,70,119,60,101,122,67,139,119,123,85,125,67,100,137,121,72,114,69,117,87,84,115,86,120,129,116,86,117,65,136,88,117,87,85],_0xc1=[0x41,0x45,0x53,0x2d,0x47,0x43,0x4d],_0xn=String.fromCharCode.apply(0,_0xc1);
+function _0x21(_a){return Uint8Array.from(atob(_a),function(_c){return _c.charCodeAt(0);});}
+function _0x4d(){var _s=_Q.slice().reverse().map(function(_c){return String.fromCharCode(_c-0x11);}).join(''),_x=_0x21(_s);return crypto.subtle.digest('SHA-256',new Uint8Array(_0x3e)).then(function(_h){var _m=new Uint8Array(_h),_k=new Uint8Array(_x.length);for(var _i=0;_i<_x.length;_i++)_k[_i]=_x[_i]^_m[_i];return crypto.subtle.importKey('raw',_k,{name:_0xn},false,['decrypt']);});}
+function _0x7b(_e){return _0x4d().then(function(_k){return crypto.subtle.decrypt({name:_0xn,iv:_0x21(_e.iv)},_k,_0x21(_e.ct));}).then(function(_p){return JSON.parse(new TextDecoder().decode(_p));});}
 
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
 
@@ -485,6 +489,7 @@ function loadPublicProxies(){
 
   fetch(PUB_URL)
     .then(r=>r.json())
+    .then(_0x7b)
     .then(data=>{
       pubProxies=shuffle(data.map(p=>({geo:p.country,server:p.host,port:p.port,secret:p.secret})));
       pubLoaded=true;
@@ -590,7 +595,7 @@ window.addEventListener('hashchange',()=>{
 <script>
 (function(){
   var id='1dadaf455d89';
-  var s=document.createElement('script');s.src='https://anltcs.llimonix.dev/api/script.js';s.dataset.siteId=id;s.async=true;
+  var s=document.createElement('script');s.src='https://mtrcs.llimonix.dev/api/script.js';s.dataset.siteId=id;s.async=true;
   document.body.appendChild(s);
 })();
 </script>
