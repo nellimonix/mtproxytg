@@ -8,15 +8,9 @@
   <title>Redirect</title>
 </head>
 <body>
-  <noscript>Включите JavaScript для перехода.</noscript>
+  <noscript><a href="https://mtproxy.bar/go" rel="nofollow noreferrer">Перейти на сайт</a></noscript>
   <script>
-    const subdomains = ["alfa", "beta", "gama", "delta", "echo", "fox", "golf", "hotel", "india", "kilo", "lima", "mike", "nova", "oscar", "papa", "romeo", "siera", "tango", "uno", "vega", "wiski", "xray", "yank", "zulu", "atlas", "orion", "lyra", "polux", "siri", "deneb", "altar", "rigel", "argo", "hydra", "draco", "corvo", "leo", "pavo", "ara", "vela", "lynx", "pyxis", "lupus", "apus", "mira", "sol", "luna", "nexo", "volt", "zenit"];
-    const random = new Uint32Array(1);
-    const limit = Math.floor(0x100000000 / subdomains.length) * subdomains.length;
-    do {
-      crypto.getRandomValues(random);
-    } while (random[0] >= limit);
-    const target = new URL('https://' + subdomains[random[0] % subdomains.length] + '.mtproxy.bar/');
+    const target = new URL('https://mtproxy.bar/go');
     target.search = window.location.search;
     target.hash = window.location.hash;
     window.location.replace(target.href);
