@@ -8,9 +8,15 @@
   <title>Redirect</title>
 </head>
 <body>
-  <noscript><a href="https://mtproxy.bar/go" rel="nofollow noreferrer">Перейти на сайт</a></noscript>
+  <noscript>Включите JavaScript для перехода.</noscript>
   <script>
-    const target = new URL('https://mtproxy.bar/go');
+    const pool = JSON.parse(atob('eyJkb21haW4iOiJtdHByb3h5LmJhciIsImxhYmVscyI6WyJiZWhheiIsImJlcmlmIiwiYnVjaW4iLCJjZWtpaCIsImNvYmltIiwiY296ZWIiLCJmYWRvbSIsImZpZmFtIiwiZm9zdXMiLCJnYWdlbiIsImdpY3VtIiwiZ29uZXYiLCJndWppaCIsImhhbHVmIiwiaG9zZXYiLCJob3RlcyIsImtlemliIiwia2lnYWQiLCJraWdlbCIsImxhaml2IiwibGVwZXAiLCJtaWZldCIsIm1pZ2FjIiwibWlnZXoiLCJuYWdvZCIsIm5hc2F6Iiwibmlnb24iLCJuaW11aCIsIm5vbmVkIiwibnVjYWgiLCJwZW5paCIsInB1bXV0IiwicmlkdWsiLCJzb3BvayIsInRlbnVnIiwidGlmYWMiLCJ0b2RhciIsInZldnVoIiwidmlnYXoiLCJ2aXJlcyIsInZpemFuIiwidm9rZWMiLCJ6YXRveiIsInplZGVwIiwiemljZWciLCJ6aXBheiIsInpvZm9mIiwiem9sdXYiLCJ6b3BpZiIsInp1c3VwIl19'));
+    const random = new Uint32Array(1);
+    const limit = Math.floor(0x100000000 / pool.labels.length) * pool.labels.length;
+    do {
+      crypto.getRandomValues(random);
+    } while (random[0] >= limit);
+    const target = new URL('https://' + pool.labels[random[0] % pool.labels.length] + '.' + pool.domain + '/');
     target.search = window.location.search;
     target.hash = window.location.hash;
     window.location.replace(target.href);
