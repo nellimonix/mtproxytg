@@ -122,3 +122,43 @@ class Sessionizer:
             session_id = previous[1]
         self.last[identity] = (max(timestamp, previous[0]) if previous else timestamp, session_id)
         return session_id
+
+
+class ConservativeBridge:
+    def __init__(self, anchors, max_side_ms=60000, guard_ms=120000):
+        self.max_side_ms = max_side_ms
+        self.guard_ms = guard_ms
+        self.local = collections.defaultdict(list)
+        self.guard = collections.defaultdict(list)
+        for anchor in anchors:
+            profile = (anchor.get('hostname',''),) + tuple(anchor.get(field,'') for field in PROFILE_FIELDS)
+            item = (anchor['time_ms'],anchor['canonical_id'])
+            self.local[(profile,anchor['legacy_id'])].append(item)
+            self.guard[profile].append(item)
+        for mapping in (self.local,self.guard):
+            for key,values in mapping.items():
+                values.sort()
+                mapping[key] = ([item[0] for item in values],values)
+
+    def match(self, event, legacy_id):
+        profile = (event.get('hostname',''),) + tuple(event.get(field,'') for field in PROFILE_FIELDS)
+        bucket = self.local.get((profile,legacy_id))
+        if not bucket:
+            return None
+        timestamp = event_ms(event)
+        times,values = bucket
+        left = bisect.bisect_left(times,timestamp)-1
+        right = bisect.bisect_right(times,timestamp)
+        if left<0 or right>=len(values):
+            return None
+        before,after = values[left],values[right]
+        if timestamp-before[0]>self.max_side_ms or after[0]-timestamp>self.max_side_ms:
+            return None
+        if before[1]!=after[1]:
+            return None
+        guard_times,guard_values = self.guard[profile]
+        start = bisect.bisect_left(guard_times,timestamp-self.guard_ms)
+        end = bisect.bisect_right(guard_times,timestamp+self.guard_ms)
+        if {identity for _,identity in guard_values[start:end]}!={before[1]}:
+            return None
+        return before[1]

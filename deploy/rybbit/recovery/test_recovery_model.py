@@ -1,5 +1,5 @@
 import unittest
-from recovery_model import LogMatcher, Sessionizer, technical_identity
+from recovery_model import ConservativeBridge, LogMatcher, Sessionizer, technical_identity
 
 
 def event(timestamp='2026-10-21 21:00:00.000', identity='old'):
@@ -16,6 +16,28 @@ def log(start_ms, identity='client-a', native='native-a'):
 
 
 class RecoveryTests(unittest.TestCase):
+    def anchor(self, timestamp, identity='visitor-a', legacy='old'):
+        record=event()
+        record.update(time_ms=timestamp,canonical_id=identity,legacy_id=legacy)
+        return record
+
+    def test_bridge_requires_anchors_on_both_sides(self):
+        bridge=ConservativeBridge([self.anchor(1792616390000)])
+        self.assertIsNone(bridge.match(event(),'old'))
+
+    def test_bridge_reuses_confirmed_identity(self):
+        bridge=ConservativeBridge([self.anchor(1792616390000),self.anchor(1792616410000)])
+        self.assertEqual(bridge.match(event(),'old'),'visitor-a')
+
+    def test_bridge_rejects_conflicting_nearby_identity(self):
+        bridge=ConservativeBridge([self.anchor(1792616390000),self.anchor(1792616410000),
+                                   self.anchor(1792616420000,'visitor-b','other')])
+        self.assertIsNone(bridge.match(event(),'old'))
+
+    def test_bridge_does_not_extrapolate_to_old_days(self):
+        bridge=ConservativeBridge([self.anchor(1792616300000),self.anchor(1792616500000)])
+        self.assertIsNone(bridge.match(event(),'old'))
+
     def test_shared_time_with_different_ips_is_ambiguous(self):
         matcher=LogMatcher([log(1792616400000),log(1792616400000,'client-b')])
         matched,status=matcher.match(event())

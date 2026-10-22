@@ -1,11 +1,12 @@
 import argparse
 import gzip
+import hashlib
 import json
 import pathlib
 import urllib.parse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input-dir', required=True)
+parser.add_argument('--input-dir', action='append', required=True)
 parser.add_argument('--output', required=True)
 parser.add_argument('--tracking-host', required=True)
 parser.add_argument('--domain', action='append', required=True)
@@ -14,8 +15,11 @@ output = pathlib.Path(args.output)
 count = 0
 first = None
 last = None
+seen = set()
 with gzip.open(str(output), 'wt', encoding='utf-8') as target:
-    for path in sorted(pathlib.Path(args.input_dir).glob('access*.log*')):
+    paths = sorted({path for directory in args.input_dir
+                    for path in pathlib.Path(directory).glob('access*.log*')})
+    for path in paths:
         opener = gzip.open if path.suffix == '.gz' else open
         with opener(str(path), 'rt', errors='replace') as source:
             for line in source:
@@ -39,6 +43,10 @@ with gzip.open(str(output), 'wt', encoding='utf-8') as target:
                     ip = request.get('remote_ip', '')
                     if not ua or not ip:
                         continue
+                    fingerprint = hashlib.sha256(line.strip().encode()).digest()
+                    if fingerprint in seen:
+                        continue
+                    seen.add(fingerprint)
                     end_ms = round(float(row['ts']) * 1000)
                     start_ms = round((float(row['ts']) - float(row.get('duration', 0))) * 1000)
                     target.write(json.dumps({'log_id': count, 'start_ms': start_ms, 'end_ms': end_ms,
