@@ -1,0 +1,14 @@
+    @entry host @POOL_DOMAIN@
+    handle @entry {
+        handle /go {
+            reverse_proxy 127.0.0.1:8791
+        }
+        handle {
+            reverse_proxy http://@ORIGIN_WG@:3016 {
+                transport http {
+                    dial_timeout 5s
+                    response_header_timeout 30s
+                }
+            }
+        }
+    }
