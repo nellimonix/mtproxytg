@@ -1,0 +1,30 @@
+http://@ENTRY_DOMAIN@ {
+    header X-Robots-Tag "noindex, nofollow, noarchive, nosnippet, noimageindex"
+    handle /.well-known/acme-challenge/* {
+        root * @ACME_ROOT@
+        file_server
+    }
+    handle {
+        redir https://{host}{uri} 308
+    }
+}
+
+@ENTRY_DOMAIN@ {
+    tls @CERT_ROOT@/fullchain.pem @CERT_ROOT@/privkey.pem
+    encode zstd gzip
+    header {
+        X-Robots-Tag "noindex, nofollow, noarchive, nosnippet, noimageindex"
+        Referrer-Policy "no-referrer"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Strict-Transport-Security "max-age=31536000"
+        -Server
+        defer
+    }
+    reverse_proxy http://@ORIGIN_WG@:3016 {
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 30s
+        }
+    }
+}

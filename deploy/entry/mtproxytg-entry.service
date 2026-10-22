@@ -1,0 +1,16 @@
+[Unit]
+Description=MTProxy entry page over WireGuard
+Requires=docker.service wg-quick@wg0.service
+After=docker.service wg-quick@wg0.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+EnvironmentFile=/etc/mtproxytg-entry.env
+WorkingDirectory=/opt/mtproxytg-entry
+ExecStart=/usr/bin/docker compose -p mtproxytg-entry -f deploy/entry/compose.yaml up -d
+ExecStop=/usr/bin/docker compose -p mtproxytg-entry -f deploy/entry/compose.yaml stop
+TimeoutStartSec=180
+
+[Install]
+WantedBy=multi-user.target
